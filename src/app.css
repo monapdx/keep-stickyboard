@@ -239,6 +239,8 @@ body{
   justify-content: center;
   flex-wrap: wrap;
   padding-bottom: 5px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .chip-filter {

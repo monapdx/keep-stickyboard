@@ -23,7 +23,7 @@ const DEMO_NOTES = [
     title: "Welcome 👋",
     text: "This is the *web demo* of Keep Sticky Board.\n\nDrag me by my title bar.",
     color: "yellow",
-    labels: ["demo", "welcome"]
+    labels: ["demo", "welcome","ss","s","e","t"]
   },
   {
     id: "demo-2",
