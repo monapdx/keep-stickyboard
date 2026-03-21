@@ -258,9 +258,11 @@ export default function App() {
   const [notes, setNotes] = useState([]);
   const [positions, setPositions] = useState({});
   const [query, setQuery] = useState("");
-  const [activeLabel, setActiveLabel] = useState("ALL");
   const saveTimer = useRef(null);
   const [zoom, setZoom] = useState(1);
+  const [openFilterBox,setOpenFilterBox] = useState(false);
+  const [selectedLabels, setSelectedLabels] = useState([]);
+  const [filterLogic, setFilterLogic] = useState("OR");
 
   // Initial load:
   // - Electron: load from keepAPI
@@ -367,6 +369,18 @@ export default function App() {
     setActiveLabel("ALL");
   }
 
+  const toggleLabel = (label) => {
+  if (label === "ALL") {
+    setSelectedLabels([]);
+    return;
+  }
+  setSelectedLabels(prev => 
+    prev.includes(label) 
+      ? prev.filter(l => l !== label)
+      : [...prev, label]
+  );
+};
+
   const allLabels = useMemo(() => {
     const s = new Set();
     for (const n of notes) for (const l of n.labels || []) s.add(l);
@@ -374,19 +388,23 @@ export default function App() {
   }, [notes]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return notes.filter((n) => {
-      if (activeLabel !== "ALL" && !(n.labels || []).includes(activeLabel)) return false;
-      if (!q) return true;
+  const q = query.trim().toLowerCase();
+  return notes.filter((n) => {
+    // Label Filter Logic
+    if (selectedLabels.length > 0) {
+      const noteLabels = n.labels || [];
+      if (filterLogic === "OR") {
+        if (!selectedLabels.some(l => noteLabels.includes(l))) return false;
+      } else {
+        if (!selectedLabels.every(l => noteLabels.includes(l))) return false;
+      }
+    }
 
-      const imageTerms = getNoteImages(n)
-        .map((img) => `${img.alt || ""} ${img.src || ""}`)
-        .join("\n");
-
-      const hay = `${n.title || ""}\n${n.text || ""}\n${imageTerms}`.toLowerCase();
-      return hay.includes(q);
-    });
-  }, [notes, query, activeLabel]);
+    if (!q) return true;
+    const hay = `${n.title || ""}\n${n.text || ""}`.toLowerCase();
+    return hay.includes(q);
+  });
+}, [notes, query, selectedLabels, filterLogic]);
 
   function noteColor(n) {
     const c = String(n.color || "").toLowerCase();
@@ -436,11 +454,33 @@ export default function App() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <select className="select" value={activeLabel} onChange={(e) => setActiveLabel(e.target.value)}>
-            {allLabels.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
+          <button className={`filter btn ${openFilterBox ? "active" : ""}`} onClick={()=>setOpenFilterBox(prev=>!prev)}>Filter Notes</button>
+          <div className={`filter-section ${openFilterBox? "active" : ""}`}>
+            {/* Logic Toggle: AND vs OR */}
+            <div className="logic-toggle">
+              <button 
+                className={`btn-toggle ${filterLogic === 'OR' ? 'active' : ''}`}
+                onClick={() => setFilterLogic('OR')}
+              > OR </button>
+              <button 
+                className={`btn-toggle ${filterLogic === 'AND' ? 'active' : ''}`}
+                onClick={() => setFilterLogic('AND')}
+              > AND </button>
+            </div>
+
+            {/* Multi-select Chips */}
+            <div className="chips-container">
+              {allLabels.map((l) => (
+                <button
+                  key={l}
+                  className={`chip-filter ${selectedLabels.includes(l) || (l === "ALL" && selectedLabels.length === 0) ? "selected" : ""}`}
+                  onClick={() => toggleLabel(l)}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </header>      
       <div className="board" style={{
