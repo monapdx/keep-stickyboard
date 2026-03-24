@@ -1,0 +1,16 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.ash.keepstickyboard
+productName: Keep Sticky Board
+files:
+  - filter:
+      - dist/**
+      - electron/**
+      - package.json
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 30.5.1
