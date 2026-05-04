@@ -93,6 +93,24 @@ npm run electron:build
 
 Output: **`release/`** (NSIS installer per `package.json` `build` config).
 
+## GitHub Release (Windows installer)
+
+CI workflow **Release Windows** (`.github/workflows/release-windows.yml`) runs when you push a **semver tag** whose name starts with **`v`** (for example **`v0.2.0`**). It runs tests, builds the NSIS setup executable, and attaches **`release/*.exe`** to a **GitHub Release** for that tag (with auto-generated release notes).
+
+Typical flow:
+
+1. Bump **`version`** in `package.json` (and keep `package-lock.json` in sync), commit to `main`.
+2. Create and push the tag (must match the version you want on the release):
+
+   ```bash
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+
+3. Open **Actions → Release Windows** on the repo and confirm the run succeeded, then open **Releases** and verify the `.exe` asset.
+
+Releases are **draft-free** by default: the workflow creates or updates the release for the pushed tag.
+
 ## How layout and data are saved
 
 | Environment | What is stored | Where |
